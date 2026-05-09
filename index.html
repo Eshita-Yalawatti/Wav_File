@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Audio Cleaner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+  <div class="max-w-xl mx-auto p-8">
+    <h1 class="text-3xl font-bold mb-8 text-center">🎙️ YouTube Audio Cleaner</h1>
+    
+    <div class="space-y-6">
+      <input id="url" type="text" placeholder="YouTube URL" 
+             class="w-full p-4 bg-gray-900 rounded-xl border border-gray-700 focus:outline-none focus:border-blue-500">
+
+      <div class="grid grid-cols-2 gap-4">
+        <input id="start" type="text" placeholder="Start (e.g. 1:45)" 
+               class="p-4 bg-gray-900 rounded-xl border border-gray-700">
+        <input id="end" type="text" placeholder="End (e.g. 4:20)" 
+               class="p-4 bg-gray-900 rounded-xl border border-gray-700">
+      </div>
+
+      <button onclick="processVideo()" 
+              class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-semibold text-lg transition">
+        Download Clean WAV
+      </button>
+    </div>
+
+    <div id="status" class="mt-6 text-center"></div>
+  </div>
+
+  <script>
+    async function processVideo() {
+      const url = document.getElementById('url').value;
+      const start = document.getElementById('start').value;
+      const end = document.getElementById('end').value;
+      const status = document.getElementById('status');
+
+      if (!url || !start || !end) {
+        status.innerHTML = `<p class="text-red-400">Please fill all fields</p>`;
+        return;
+      }
+
+      status.innerHTML = `<p class="text-blue-400">Processing... This may take 10-30 seconds</p>`;
+
+      try {
+        const res = await fetch('https://your-backend.onrender.com/process', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ youtube_url: url, start_time: start, end_time: end })
+        });
+
+        if (res.ok) {
+          const blob = await res.blob();
+          const downloadUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.download = 'clean_audio.wav';
+          a.click();
+          status.innerHTML = `<p class="text-green-400">✅ Download started!</p>`;
+        } else {
+          status.innerHTML = `<p class="text-red-400">Error: ${await res.text()}</p>`;
+        }
+      } catch (err) {
+        status.innerHTML = `<p class="text-red-400">Failed to connect to server</p>`;
+      }
+    }
+  </script>
+</body>
+</html>
